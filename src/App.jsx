@@ -1,30 +1,31 @@
-// App.jsx
-import { useState, useEffect } from 'react';
-import './App.css';
+import React, { useState, useEffect } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
-import AddTodo from './AddTodo';
+import AddBook from './AddBook';
 
+import './App.css';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-material.css';
 
 function App() {
-  const [todos, setTodos] = useState([]);
+  const [books, setBooks] = useState([]);
 
   const columnDefs = [
-    { field: 'description', sortable: true, filter: true},
-    { field: 'date', sortable: true, filter: true},
-    { field: 'priority', sortable: true, filter: true},
+    { field: 'title', sortable: true, filter: true},
+    { field: 'author', sortable: true, filter: true},
+    { field: 'year', sortable: true, filter: true},
+    { field: 'isbn', sortable: true, filter: true},
+    { field: 'price', sortable: true, filter: true},
     { 
       headerName: '',
       field: 'id',
       width: 90,
       cellRenderer: params => 
-      <IconButton onClick={() => deleteTodo(params.value)} size="small" color="error">
+      <IconButton onClick={() => deleteBook(params.value)} size="small" color="error">
         <DeleteIcon />
       </IconButton> 
     }
@@ -35,52 +36,55 @@ function App() {
   }, [])
 
   const fetchItems = () => {
-    fetch('https://todolist-c5157-default-rtdb.europe-west1.firebasedatabase.app/items/.json')
+    fetch('https://bookstore-19717-default-rtdb.firebaseio.com/books/.json')
     .then(response => response.json())
-    .then(data => setTodos(Object.values(data)))
+    .then(data => addKeys(data))
     .catch(err => console.error(err))
   }
 
-    // Add keys to the todo objects
-    const addKeys = (data) => {
-      const keys = Object.keys(data);
-      const valueKeys = Object.values(data).map((item, index) => 
+  const addKeys = (data) => { 
+    const keys = Object.keys(data);
+    const valueKeys = Object.values(data).map((item, index) => 
       Object.defineProperty(item, 'id', {value: keys[index]}));
-      setTodos(valueKeys);
-    }
+    setBooks(valueKeys);  
+  }
 
-  const addTodo = (newTodo) => {
-    fetch('https://todolist-c5157-default-rtdb.europe-west1.firebasedatabase.app/items/.json',
+  const addBook = (newBook) => {
+    fetch('https://bookstore-19717-default-rtdb.firebaseio.com/books/.json',
     {
       method: 'POST',
-      body: JSON.stringify(newTodo)
+      body: JSON.stringify(newBook)
     })
     .then(response => fetchItems())
     .catch(err => console.error(err))
   }
 
-  const deleteTodo = (id) => {
-    fetch('https://todolist-c5157-default-rtdb.europe-west1.firebasedatabase.app/items/${id}.json',
-    {
+  const deleteBook = (id) => {
+    fetch(`https://bookstore-19717-default-rtdb.firebaseio.com/books/${id}.json`, {
       method: 'DELETE',
     })
-    .then(response => fetchItems())
+     .then(response => fetchItems())
     .catch(err => console.error(err))
   }
+
+  const clearTodos = () => {
+    setBooks([]);
+  };
+
 
   return (
     <>
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h5">
-            TodoList
+            Bookstore
           </Typography>
         </Toolbar>
       </AppBar> 
-      <AddTodo addTodo={addTodo} />
-      <div className="ag-theme-material" style={{ height: 400, width: 800 }}>
+      <AddBook addBook={addBook} />
+      <div className="ag-theme-material" style={{ height: 400, width:1244 }}>
         <AgGridReact 
-          rowData={todos}
+          rowData={books}
           columnDefs={columnDefs}
         />
       </div>
@@ -89,3 +93,4 @@ function App() {
 }
 
 export default App;
+
